@@ -3,6 +3,8 @@ import os
 import glob
 from sklearn.cluster import KMeans
 
+
+
 def build_vocabulary(image_paths, vocab_size):
     """ Sample SIFT descriptors, cluster them using k-means, and return the fitted k-means model.
     NOTE: We don't necessarily need to use the entire training dataset. You can use the function
@@ -22,20 +24,33 @@ def build_vocabulary(image_paths, vocab_size):
     # Since want to sample tens of thousands of SIFT descriptors from different images, we
     # calculate the number of SIFT descriptors we need to sample from each image.
     n_each = int(np.ceil(10000 / n_image))  # You can adjust 10000 if more is desired
-    
+    # print n_each
     # Initialize an array of features, which will store the sampled descriptors
     features = np.zeros((n_image * n_each, 128))
-
+    track_index = 0
     for i, path in enumerate(image_paths):
         # Load SIFT features from path
         descriptors = np.loadtxt(path, delimiter=',',dtype=float)
-
+        
+        
+        
+        for j in range(0, n_each):
+            idx = np.random.randint(0, len(descriptors))
+            features[(track_index+j)] = descriptors[idx]
+            
+        track_index += n_each
+        
+        
+        
+        
         # TODO: Randomly sample n_each features from descriptors, and store them in features
 
+    
     # TODO: pefrom k-means clustering to cluster sampled SIFT features into vocab_size regions.
     # You can use KMeans from sci-kit learn.
     # Reference: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
     
+    kmeans = KMeans(n_clusters = vocab_size).fit(features)
     return kmeans
     
 def get_bags_of_sifts(image_paths, kmeans):
@@ -52,7 +67,6 @@ def get_bags_of_sifts(image_paths, kmeans):
     """
     n_image = len(image_paths)
     vocab_size = kmeans.cluster_centers_.shape[0]
-
     image_feats = np.zeros((n_image, vocab_size))
 
     for i, path in enumerate(image_paths):
@@ -60,6 +74,10 @@ def get_bags_of_sifts(image_paths, kmeans):
         descriptors = np.loadtxt(path, delimiter=',',dtype=float)
 
         # TODO: Assign each descriptor to the closest cluster center
+        
+        for j in descriptors:
+            print j
+            
 
         # TODO: Build a histogram normalized by the number of descriptors
 

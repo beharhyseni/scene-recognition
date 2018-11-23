@@ -16,9 +16,9 @@ from classifiers import nearest_neighbor_classify, svm_classify
 #You can limit number of samples by using the n_sample parameter.
 
 print('Getting paths and labels for all train and test data\n')
-train_image_paths, train_labels = sample_images("data/sift/train", n_sample=300)
-test_image_paths, test_labels = sample_images("data/sift/test", n_sample=100)
-       
+train_image_paths, train_labels = sample_images("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/sift/train", n_sample=300)
+test_image_paths, test_labels = sample_images("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/sift/test", n_sample=100)
+
 
 ''' Step 1: Represent each image with the appropriate feature
  Each function to construct features should return an N x d matrix, where
@@ -29,12 +29,12 @@ test_image_paths, test_labels = sample_images("data/sift/test", n_sample=100)
         
 print('Extracting SIFT features\n')
 #TODO: You code build_vocabulary function in util.py
-kmeans = build_vocabulary(train_image_paths, vocab_size=200)
+kmeans = build_vocabulary(train_image_paths, vocab_size=50)
 
 #TODO: You code get_bags_of_sifts function in util.py 
 train_image_feats = get_bags_of_sifts(train_image_paths, kmeans)
-test_image_feats = get_bags_of_sifts(test_image_paths, kmeans)
-        
+# test_image_feats = get_bags_of_sifts(test_image_paths, kmeans)
+#         
 #If you want to avoid recomputing the features while debugging the
 #classifiers, you can either 'save' and 'load' the extracted features
 #to/from a file.
@@ -46,13 +46,13 @@ test_image_feats = get_bags_of_sifts(test_image_paths, kmeans)
  for more details. '''
 
 print('Using nearest neighbor classifier to predict test set categories\n')
-#TODO: YOU CODE nearest_neighbor_classify function from classifers.py
-pred_labels_knn = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
+
+# pred_labels_knn = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
   
 
 print('Using support vector machine to predict test set categories\n')
 #TODO: YOU CODE svm_classify function from classifers.py
-pred_labels_svm = svm_classify(train_image_feats, train_labels, test_image_feats)
+# pred_labels_svm = svm_classify(train_image_feats, train_labels, test_image_feats)
 
 
 
