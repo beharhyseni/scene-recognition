@@ -77,19 +77,28 @@ def get_bags_of_sifts(image_paths, kmeans):
         descriptors = np.loadtxt(path, delimiter=',',dtype=float)
         
         # TODO: Assign each descriptor to the closest cluster center
-        
+       
         for descr_idx in range(0, len(descriptors)):
             descriptor = descriptors[descr_idx]
             mapped_cluster = kmeans.predict(descriptor.reshape(-1,128))[0]
             
             image_feats[i][mapped_cluster] += 1
-            if i == 0:
-                value +=1
-                
-        sum = np.sum(image_feats[i])
-        print sum
             
+            value +=1
+        
             
+        the_sum = np.sum(image_feats[i])
+        
+        # Normalization
+        for column_index in range(0, len(image_feats[i])):
+            column = np.divide(image_feats[i][column_index], the_sum)
+            image_feats[i][column_index] = column
+            
+        
+        
+        
+        
+        
         #     
         #     distances_to_centroids = euclidean_distances(centroids, descriptor.reshape(-1,128))[0]
         #     the_list = distances_to_centroids
