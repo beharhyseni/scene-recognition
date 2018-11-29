@@ -30,16 +30,14 @@ def build_vocabulary(image_paths, vocab_size):
     track_index = 0
     for i, path in enumerate(image_paths):
         # Load SIFT features from path
-        descriptors = np.loadtxt(path, delimiter=',',dtype=float)
-        
+        descriptors = np.loadtxt(path, delimiter=',',dtype=float)      
         
         
         for j in range(0, n_each):
             idx = np.random.randint(0, len(descriptors))
             features[(track_index+j)] = descriptors[idx]
             
-        track_index += n_each
-        
+        track_index += n_each    
         
         
         
@@ -68,17 +66,46 @@ def get_bags_of_sifts(image_paths, kmeans):
     n_image = len(image_paths)
     vocab_size = kmeans.cluster_centers_.shape[0]
     image_feats = np.zeros((n_image, vocab_size))
-
+    centroids = kmeans.cluster_centers_
+    
+    array = 0
+    track_index = 0
+    min_value = 0
+    value = 0
     for i, path in enumerate(image_paths):
         # Load SIFT descriptors
         descriptors = np.loadtxt(path, delimiter=',',dtype=float)
-
+        
         # TODO: Assign each descriptor to the closest cluster center
         
-        for j in descriptors:
-            print j
+        for descr_idx in range(0, len(descriptors)):
+            descriptor = descriptors[descr_idx]
+            mapped_cluster = kmeans.predict(descriptor.reshape(-1,128))[0]
             
-
+            image_feats[i][mapped_cluster] += 1
+            if i == 0:
+                value +=1
+                
+        sum = np.sum(image_feats[i])
+        print sum
+            
+            
+        #     
+        #     distances_to_centroids = euclidean_distances(centroids, descriptor.reshape(-1,128))[0]
+        #     the_list = distances_to_centroids
+        #     min_distance = sorted(distances_to_centroids)[0]
+        #     index = list(the_list).index(min_distance)
+        #     print index
+        #     
+        #     # image_feats[i][index] += 1
+        #     print i
+        #     
+        # 
+        # 
+        # 
+        
+        
+        
         # TODO: Build a histogram normalized by the number of descriptors
 
     return image_feats
