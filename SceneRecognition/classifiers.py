@@ -1,3 +1,7 @@
+import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+from  sklearn.metrics import accuracy_score
+ 
  #Starter code prepared by Borna Ghotbi for computer vision
  #based on MATLAB code by James Hay
 
@@ -27,9 +31,24 @@ def nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
     	# You can use knn from sci-kit learn.
         # Reference: https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
     '''
+    M = len(test_image_feats)
+    predicted_labels = np.empty((M,1))
+    
+    model = KNeighborsClassifier(n_neighbors = 5) 
+    model.fit(train_image_feats, train_labels)
+    
+    labels = model.predict(test_image_feats)
+    
+    for label in range(len(labels)):
+        predicted_labels[label] = labels[label]
+    
     return predicted_labels
 
-
+# # HELPER FUNCTION TO EXTRACT PATH CATEGORY(SCENE) NAME
+# 
+# def get_categories(image_feats):
+#     for img in image_feats:
+#         
 
 '''This function will train a linear SVM for every category (i.e. one vs all)
 and then use the learned linear classifiers to predict the category of
@@ -49,7 +68,7 @@ def svm_classify(train_image_feats, train_labels, test_image_feats):
     	test_image_feats: is an M x d matrix, where d is the dimensionality of the
     					  feature representation. You can assume M = N unless you've modified the starter code.
         
-    Returns
+    Returns\h
         -------
     	is an M x l cell array, where each row is a one-hot vector 
         indicating the predicted category for each test image.
@@ -60,5 +79,6 @@ def svm_classify(train_image_feats, train_labels, test_image_feats):
         # Reference: https://scikit-learn.org/stable/modules/svm.html
 
     '''
-    return predicted_labels
+    return "predicted_labels"
+    
 
