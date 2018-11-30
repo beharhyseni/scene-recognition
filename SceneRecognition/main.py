@@ -5,6 +5,7 @@ import numpy as np
 from util import sample_images, build_vocabulary, get_bags_of_sifts
 from classifiers import nearest_neighbor_classify, svm_classify
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 VOCAB_SIZE = 50
 #For this assignment, you will need to report performance for sift features on two different classifiers:
@@ -18,8 +19,10 @@ VOCAB_SIZE = 50
 #You can limit number of samples by using the n_sample parameter.
 
 print('Getting paths and labels for all train and test data\n')
-train_image_paths, train_labels = sample_images("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/sift/train", n_sample=300)
-test_image_paths, test_labels = sample_images("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/sift/test", n_sample=100)
+train_image_paths, train_labels = sample_images("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/sift/train", n_sample=1000)
+test_image_paths, test_labels = sample_images("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/sift/test", n_sample=250)
+
+
 
 
 ''' Step 1: Represent each image with the appropriate feature
@@ -33,9 +36,10 @@ print('Extracting SIFT features\n')
 #TODO: You code build_vocabulary function in util.py
 kmeans = build_vocabulary(train_image_paths, vocab_size = VOCAB_SIZE)
 
+
 #TODO: You code get_bags_of_sifts function in util.py 
 train_image_feats = get_bags_of_sifts(train_image_paths, kmeans)
-# test_image_feats = get_bags_of_sifts(test_image_paths, kmeans)
+test_image_feats = get_bags_of_sifts(test_image_paths, kmeans)
 #         
 #If you want to avoid recomputing the features while debugging the
 #classifiers, you can either 'save' and 'load' the extracted features
@@ -43,66 +47,67 @@ train_image_feats = get_bags_of_sifts(train_image_paths, kmeans)
 
 
 # ***** IMPLEMENTATION OF THE AVERAGE HISTOGRAM *****
-count = 0
-all_images_indexes = []
-images_paths_names = ['Bedroom', 'Coast', 'Forest', 'Highway', 'Industrial', 'InsideCity', 'Kitchen',
-'LivingRoom', 'Mountain', 'Office', 'OpenCountry', 'Store', 'Street', 'Suburb', 'TallBuilding']
-   
-   
-   
-# Loop through every path name (out of 15) in images_paths_names to save the indexes of each of the 15
-# image paths into a list.
-for name_idx in range(0, len(images_paths_names)):
-    
-    image_indexes = []
-    path = images_paths_names[name_idx]
-    
-    for image_idx in range(0, len(train_image_paths)):    
-        image = train_image_paths[image_idx]          
-        
-        if path in image:            
-            image_indexes.append(image_idx)
-        
-    all_images_indexes.append(image_indexes)
-
-            
-            
-
-# Compute appropriate indexes and images
-        
-images_matrix = []
-for paths_indexes in all_images_indexes:
-    one_image_index_list = []
-    
-    for image_path in paths_indexes:
-        one_image_index_list.append(train_image_feats[image_path])
-    
-    images_matrix.append(one_image_index_list)
-    
-
-# Average Histogram
-
-averaged_matrix = []
-for matrix in images_matrix:
-    # Computes the average of arrays of a image scene (do this for each image scene = 15 image scenes).
-    avg = [float(sum(l))/len(l) for l in zip(*matrix)]
-    averaged_matrix.append(avg)
-
-
-for img_idx in range(len(averaged_matrix)):
-    img = averaged_matrix[img_idx]
-    n_bins = np.arange(0, VOCAB_SIZE, 1)
-    
-    plt.close()
-    
-    plt.bar(n_bins, img)
-    plt.xlabel('Number of Keywords (Vocab Size)')
-    plt.ylabel('Normalized Frequency')
-
-    plt.title('Average Histogram for Category: ' + images_paths_names[img_idx] )
-    
-    plt.title(images_paths_names[img_idx])
-    plt.savefig("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/Histograms/" + images_paths_names[img_idx] + ".png")
+# count = 0
+# all_images_indexes = []
+# images_paths_names = ['Bedroom', 'Coast', 'Forest', 'Highway', 'Industrial', 'InsideCity', 'Kitchen',
+# 'LivingRoom', 'Mountain', 'Office', 'OpenCountry', 'Store', 'Street', 'Suburb', 'TallBuilding']
+#    
+#    
+#    
+# # Loop through every path name (out of 15) in images_paths_names to save the indexes of each of the 15
+# # image paths into a list.
+# 
+# for name_idx in range(0, len(images_paths_names)):
+#     
+#     image_indexes = []
+#     path = images_paths_names[name_idx]
+#     
+#     for image_idx in range(0, len(train_image_paths)):    
+#         image = train_image_paths[image_idx]          
+#         
+#         if path in image:            
+#             image_indexes.append(image_idx)
+#         
+#     all_images_indexes.append(image_indexes)
+# 
+#             
+#             
+# 
+# # Compute appropriate indexes and images
+#         
+# images_matrix = []
+# for paths_indexes in all_images_indexes:
+#     one_image_index_list = []
+#     
+#     for image_path in paths_indexes:
+#         one_image_index_list.append(train_image_feats[image_path])
+#     
+#     images_matrix.append(one_image_index_list)
+#     
+# 
+# # Average Histogram
+# 
+# averaged_matrix = []
+# for matrix in images_matrix:
+#     # Computes the average of arrays of a image scene (do this for each image scene = 15 image scenes).
+#     avg = [float(sum(l))/len(l) for l in zip(*matrix)]
+#     averaged_matrix.append(avg)
+# 
+# 
+# for img_idx in range(len(averaged_matrix)):
+#     img = averaged_matrix[img_idx]
+#     n_bins = np.arange(0, VOCAB_SIZE, 1)
+#     
+#     plt.close()
+#     
+#     plt.bar(n_bins, img)
+#     plt.xlabel('Number of Keywords (Vocab Size)')
+#     plt.ylabel('Normalized Frequency')
+# 
+#     plt.title('Average Histogram for Category: ' + images_paths_names[img_idx] )
+#     
+#     plt.title(images_paths_names[img_idx])
+#     plt.savefig("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/Histograms/" + images_paths_names[img_idx] + ".png")
 
 # ***** THE END OF IMPLEMENTATION OF THE AVERAGE HISTOGRAM *****
 
@@ -121,8 +126,22 @@ for img_idx in range(len(averaged_matrix)):
 
 print('Using nearest neighbor classifier to predict test set categories\n')
 
-# pred_labels_knn = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
-  
+pred_labels_knn = nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
+
+
+# Confusion Matrix
+the_confusion_matrix = confusion_matrix(test_labels, pred_labels_knn)
+diagonal_sum = np.trace(the_confusion_matrix)
+total_sum = np.sum(the_confusion_matrix)
+print float(diagonal_sum)
+print float(total_sum)
+
+print the_confusion_matrix
+accuracy = float(diagonal_sum)/float(total_sum)
+print "KNN Accuracy: ", accuracy
+
+
+
 
 print('Using support vector machine to predict test set categories\n')
 #TODO: YOU CODE svm_classify function from classifers.py
