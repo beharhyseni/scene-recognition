@@ -6,6 +6,7 @@ from util import sample_images, build_vocabulary, get_bags_of_sifts
 from classifiers import nearest_neighbor_classify, svm_classify
 import matplotlib.pyplot as plt
 
+VOCAB_SIZE = 50
 #For this assignment, you will need to report performance for sift features on two different classifiers:
 # 1) Bag of sift features and nearest neighbor classifier
 # 2) Bag of sift features and linear SVM classifier
@@ -30,7 +31,7 @@ test_image_paths, test_labels = sample_images("C:/Users/behar/OneDrive/SceneReco
         
 print('Extracting SIFT features\n')
 #TODO: You code build_vocabulary function in util.py
-kmeans = build_vocabulary(train_image_paths, vocab_size=50)
+kmeans = build_vocabulary(train_image_paths, vocab_size = VOCAB_SIZE)
 
 #TODO: You code get_bags_of_sifts function in util.py 
 train_image_feats = get_bags_of_sifts(train_image_paths, kmeans)
@@ -42,9 +43,6 @@ train_image_feats = get_bags_of_sifts(train_image_paths, kmeans)
 
 
 # ***** IMPLEMENTATION OF THE AVERAGE HISTOGRAM *****
-# plt.hist(train_image_feats[0])
-# plt.show()
-
 count = 0
 all_images_indexes = []
 images_paths_names = ['Bedroom', 'Coast', 'Forest', 'Highway', 'Industrial', 'InsideCity', 'Kitchen',
@@ -86,26 +84,27 @@ for paths_indexes in all_images_indexes:
 
 averaged_matrix = []
 for matrix in images_matrix:
+    # Computes the average of arrays of a image scene (do this for each image scene = 15 image scenes).
     avg = [float(sum(l))/len(l) for l in zip(*matrix)]
     averaged_matrix.append(avg)
 
 
-
 for img_idx in range(len(averaged_matrix)):
     img = averaged_matrix[img_idx]
-    plt.close()
-    plt.hist(img, bins = 50)
-    plt.title(images_paths_names[img_idx])
-    plt.savefig("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/Histograms/" + images_paths_names[img_idx]+".png")
+    n_bins = np.arange(0, VOCAB_SIZE, 1)
     
+    plt.close()
+    
+    plt.bar(n_bins, img)
+    plt.xlabel('Number of Keywords (Vocab Size)')
+    plt.ylabel('Normalized Frequency')
 
+    plt.title('Average Histogram for Category: ' + images_paths_names[img_idx] )
+    
+    plt.title(images_paths_names[img_idx])
+    plt.savefig("C:/Users/behar/OneDrive/SceneRecognition/SceneRecognition/Histograms/" + images_paths_names[img_idx] + ".png")
 
-
-
-
-
-
-
+# ***** THE END OF IMPLEMENTATION OF THE AVERAGE HISTOGRAM *****
 
 ''' Step 2: Classify each test image by training and using the appropriate classifier
  Each function to classify test features will return an N x l cell array,
