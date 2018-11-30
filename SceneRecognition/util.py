@@ -24,31 +24,42 @@ def build_vocabulary(image_paths, vocab_size):
     # Since want to sample tens of thousands of SIFT descriptors from different images, we
     # calculate the number of SIFT descriptors we need to sample from each image.
     n_each = int(np.ceil(10000 / n_image))  # You can adjust 10000 if more is desired
-    # print n_each
+ 
     # Initialize an array of features, which will store the sampled descriptors
     features = np.zeros((n_image * n_each, 128))
+    
+    # Initialize the int variable 'track_index' to 0. This variable will keep track of already filled rows in the 'features' array
+    # and prevent replacing same feature's rows and columns that were already modified. (will see in more details how this work in the bottom)
     track_index = 0
+    
+    
+    # Iterate through each image_paths. 'i' is the index of the current iteration's index while 'path' is the actual string of the current iteration.
     for i, path in enumerate(image_paths):
+        
         # Load SIFT features from path
-        descriptors = np.loadtxt(path, delimiter=',',dtype=float)      
+        descriptors = np.loadtxt(path, delimiter=',',dtype=float) 
         
+        # Generate a random array of indexes taken from 'descriptors' array, where n_each is the size of this generated random array, 
+        # len(descriptors) is the pool of integers that are generated and added into the array 'random_array_indexes". The argument 'len(descriptors)'
+        # acts as being 'np.arange(len(descriptors)), which is a way to create an array, in this case integer elements, with minimum being 0 and max being the 'len(descriptors)'. 
+        # This will act as the pool of integers to choose from. And lastly, the argument 'replace = True', means that when an image's descriptors length is less than n_each, 
+        # then random integers can be same as some other random integers generated before. This will assure that when we save random descriptors into the 'features', there will be
+        # no rows with all zero values. But, there may be some with repeated values, which is fine (according to the Professor's answer in Piazza post @333)
+        random_array_indexes = np.random.choice(len(descriptors), n_each, replace = True)
         
-        for j in range(0, n_each):
-            idx = np.random.randint(0, len(descriptors))
-            features[(track_index+j)] = descriptors[idx]
-            
-        track_index += n_each    
+        # Save random descriptors (a random descriptor is selected by using the current iteration's random_value as an index for descriptors). 
+        # After we have selected the random descriptor (descriptors[random_value]), we save descriptor into the right place of 'features' by using the addition of track_index (initally 0) and counter 
+        # as a value to move the "pointer" of the features into the next row. After one complete loop of random_array_indexes, we will have saved n_each rows into features. The next random_array_indexes
+        # will be saved starting from features[track_index] which prevents same rows being replaced over and over again.
+        for counter, random_value in enumerate(random_array_indexes):
+            features[(track_index+counter)] = descriptors[random_value]
         
-        
-        
-        # TODO: Randomly sample n_each features from descriptors, and store them in features
-
-    
-    # TODO: pefrom k-means clustering to cluster sampled SIFT features into vocab_size regions.
-    # You can use KMeans from sci-kit learn.
-    # Reference: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
-    
+        # Update track_index after each completed loop by adding n_each to it. This will ensure the next loop will point to the correct (that is, not visited previously) 'features' row.
+        track_index += n_each           
+           
+    # Compute KMeans clustering on 'features' with the number of clusters being the vocab_size 
     kmeans = KMeans(n_clusters = vocab_size).fit(features)
+    
     return kmeans
     
 def get_bags_of_sifts(image_paths, kmeans):
@@ -66,57 +77,43 @@ def get_bags_of_sifts(image_paths, kmeans):
     n_image = len(image_paths)
     vocab_size = kmeans.cluster_centers_.shape[0]
     image_feats = np.zeros((n_image, vocab_size))
-    centroids = kmeans.cluster_centers_
-    
-    array = 0
-    track_index = 0
-    min_value = 0
-    value = 0
+        
     for i, path in enumerate(image_paths):
+        
         # Load SIFT descriptors
         descriptors = np.loadtxt(path, delimiter=',',dtype=float)
-        
-        # TODO: Assign each descriptor to the closest cluster center
-       
+           
+        # Here we loop through every descriptor of the image_paths iteration in order to map each descriptor to the closest cluster center
         for descr_idx in range(0, len(descriptors)):
             descriptor = descriptors[descr_idx]
-            mapped_cluster = kmeans.predict(descriptor.reshape(-1,128))[0]
             
+            # Predict the closest cluster center each sample in descriptor belongs to.
+            # kmeans.predict function requires the argument to be reshaped in order to match the cluster center array.
+            # descriptor.reshape(-1,len(descriptor)) will reshape the current descriptor into a len(descriptor) dimensional (ie, 128 D) array to make sure it
+            # is correctly computed into kmeans.predict. 
+            mapped_cluster = kmeans.predict(descriptor.reshape(-1,len(descriptor)))[0]
+            
+            # use 'i' as row index for image_feats and 'mapped_cluster' as column index in order to increment the correct bin for the predicted closes cluster center of the current descriptor
             image_feats[i][mapped_cluster] += 1
             
-            value +=1
-        
             
+            
+        # NORMALIZATION PART
+        
+        # Compute the sum of the current row in imge_feats and save this value to the variable 'the_sum'
         the_sum = np.sum(image_feats[i])
         
-        # Normalization
+        # Iterate through each column in the current row ('i') of image_feats
         for column_index in range(0, len(image_feats[i])):
-            column = np.divide(image_feats[i][column_index], the_sum)
-            image_feats[i][column_index] = column
             
-        
-        
-        
-        
-        
-        #     
-        #     distances_to_centroids = euclidean_distances(centroids, descriptor.reshape(-1,128))[0]
-        #     the_list = distances_to_centroids
-        #     min_distance = sorted(distances_to_centroids)[0]
-        #     index = list(the_list).index(min_distance)
-        #     print index
-        #     
-        #     # image_feats[i][index] += 1
-        #     print i
-        #     
-        # 
-        # 
-        # 
-        
-        
-        
-        # TODO: Build a histogram normalized by the number of descriptors
+            # Divide each column value in the current image_feats row with the_sum (total sum of all columns in the current row) and save this value into variable 'normalized_value"
+            normalized_value = np.divide(image_feats[i][column_index], the_sum)
+            
+            # Replace each column in of the current image_feats row with the calcualted normalized value.
+            # This will ensure that every image_feats row will sum up to one; Hence, it is now normalized.
+            image_feats[i][column_index] = normalized_value
 
+    # Return the normalized image_feats
     return image_feats
 
 def sample_images(ds_path, n_sample):
